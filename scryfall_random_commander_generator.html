@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Scryfall Card</title>
+    <script>
+        function randomIntFromInterval(min, max) {
+            return Math.floor(Math.random() * (max - min + 1) + min);
+        }
+
+        function randomPage() {
+            return randomIntFromInterval(1, 12);
+        }
+
+        function randomCard() {
+            return randomIntFromInterval(1, 175);
+        }
+
+        function displayCardInfo(card) {
+            document.getElementById('name').innerText = card.name;
+            document.getElementById('manaValue').innerText = card.mana_cost;
+            document.getElementById('powerToughness').innerText = `${card.power}/${card.toughness}`;
+            document.getElementById('link').href= card.scryfall_uri;
+            document.getElementById('description').innerText = card.oracle_text;
+            document.getElementById('cardImage').src = card.image_uris.small;
+        }
+
+        async function fetchData() {
+            const baseurl = 'https://api.scryfall.com/cards/search';
+            const query = encodeURIComponent(`t:"legendary creature" f:edh`);
+            const unique = 'cards';
+            const dir = 'asc';
+            const order = 'released';
+            const page = randomPage();
+            const card = randomCard();
+            const url = `${baseurl}?q=${query}&unique=${unique}&dir=${dir}&order=${order}&page=${page}`;
+
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    const jsonResponse = await response.json();
+                    let data = jsonResponse.data;
+                    if (data.length < card) {
+                        displayCardInfo(data[data.length - 1])
+                    } else {
+                        displayCardInfo(data[card - 1]);
+                    }
+                } else {
+                    document.getElementById('displayArea').innerText = 'HTTP-Error: ' + response.status;
+                }
+            } catch (error) {
+                console.log(page, card)
+                document.getElementById('displayArea').innerText = 'Error: ' + error;
+            }
+        }
+    </script>
+</head>
+<body>
+<button onclick="fetchData()">Get Random Card Info</button>
+<div>
+    <h3>Name</h3>
+    <p id="name"></p>
+</div>
+<div>
+    <img id="cardImage" src="">
+</div>
+<div>
+    <h3>Mana Value</h3>
+    <p id="manaValue"></p>
+</div>
+<div>
+    <h3>Power/Toughness</h3>
+    <p id="powerToughness"></p>
+</div>
+<div>
+    <h3><a id="link"> Scryfall Link </a></h3>
+</div>
+<div>
+    <h3>Description</h3>
+    <p id="description"></p>
+</div>
+</body>
+</html>
