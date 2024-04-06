@@ -15,13 +15,24 @@
             return randomIntFromInterval(1, 175);
         }
 
-        function displayCardInfo(card) {
+        const previousCards = [];
+
+        function displayCardInfo(data) {
+            let cardNumber = randomIntFromInterval(0, data.length - 1);
+            const card = data[cardNumber];
             document.getElementById('name').innerText = card.name;
             document.getElementById('manaValue').innerText = card.mana_cost;
             document.getElementById('powerToughness').innerText = `${card.power}/${card.toughness}`;
             document.getElementById('link').href= card.scryfall_uri;
             document.getElementById('description').innerText = card.oracle_text;
-            document.getElementById('cardImage').src = card.image_uris.small;
+            document.getElementById('cardImage').src = card.image_uris.normal;
+            document.getElementById('previousCards').innerHTML = '';
+            previousCards.forEach(function(prevCard) {
+                var li = document.createElement('li');
+                li.innerHTML = `<h4><a href="${prevCard.scryfall_uri}">${prevCard.name}<a/><h4/>`;
+                document.getElementById('previousCards').appendChild(li);
+            });
+            previousCards.unshift(card);
         }
 
         async function fetchData() {
@@ -31,7 +42,6 @@
             const dir = 'asc';
             const order = 'released';
             const page = randomPage();
-            const card = randomCard();
             const url = `${baseurl}?q=${query}&unique=${unique}&dir=${dir}&order=${order}&page=${page}`;
 
             try {
@@ -39,11 +49,7 @@
                 if (response.ok) {
                     const jsonResponse = await response.json();
                     let data = jsonResponse.data;
-                    if (data.length < card) {
-                        displayCardInfo(data[data.length - 1])
-                    } else {
-                        displayCardInfo(data[card - 1]);
-                    }
+                    displayCardInfo(data)
                 } else {
                     document.getElementById('displayArea').innerText = 'HTTP-Error: ' + response.status;
                 }
@@ -77,6 +83,12 @@
 <div>
     <h3>Description</h3>
     <p id="description"></p>
+</div>
+<div>
+    <h3>Previous Cards</h3>
+    <ol id="previousCards">
+
+    </ol>
 </div>
 </body>
 </html>
